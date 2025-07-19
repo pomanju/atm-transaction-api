@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="check-balance-implementation-flow" doc:id="162e3f6b-6ffe-4d69-8704-081f6e47f43e" >
+		<ee:transform doc:name="Input parameters" doc:id="3fd15bf0-02fd-4bb7-afcc-aa655f200800" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="inputPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="bank" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.bank]]></ee:set-variable>
+				<ee:set-variable variableName="accountNum" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.accountNum]]></ee:set-variable>
+				<ee:set-variable variableName="inputParameters" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="query-account-number-flow" doc:id="21df840d-3feb-4430-9195-96aeb3b9f1ac" name="query-account-number-flow" />
+		<choice doc:name="Check - account exists" doc:id="790eb41d-d35b-4aa0-baf8-bea73cfe9800" >
+			<when expression="#[!isEmpty(vars.accountQuery)]">
+				<choice doc:name="Check Account is active" doc:id="44ea6cd6-c0f1-46a1-ac95-859c72a27aad" >
+					<when expression='#[vars.accountQuery.accountStatus == "Active"]'>
+						<choice doc:name="Choice" doc:id="50af8759-4353-44d6-b94b-d56fde89583a" >
+							<when expression="#[vars.inputPayload.atmPin == vars.accountQuery.atmPin]">
+								<ee:transform doc:name="Transform Message" doc:id="6957b4c4-9a53-445f-98b5-35cf6dd85e22" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Your total balance is " ++ vars.accountQuery.totalBalance  ++ " as on " ++ now() as String {format: "dd-MMM-yyyy"} 
+}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</when>
+							<otherwise >
+								<flow-ref doc:name="atmpin-invalid-subflow" doc:id="b1bed406-266a-4160-b795-61f7bd2112ba" name="atmpin-invalid-subflow"/>
+							</otherwise>
+						</choice>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Transform Message" doc:id="528c5d70-0dab-4c6a-8d77-b122b7d78cdc" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " is temporarily blocked. Please visit nearest Branch"]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="b3197fbf-de12-461f-98b4-626ae6ffaaf8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " does not exist. Enter Valid Details"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

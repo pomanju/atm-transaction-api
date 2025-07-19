@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="28c8da04-a2fc-45c0-b1e9-b78c67146404" >
+		<db:my-sql-connection host="${database.host}" port="${database.port}" user="${secure::database.user}" password="${secure::database.password}" database="${database.dbName}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="4cc9caa3-fccd-4a1e-b6a0-c0e5475373eb" file="properties/config-dev.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="87ce3c5f-d143-4500-bf8b-b12a92ebbaca" file="properties/secure-config-dev.yaml" key="password12345678" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="980817e8-dd0b-46fe-a965-70709e33394b" >
+		<http:listener-connection host="0.0.0.0" port="${api.port}" />
+	</http:listener-config>
+	<apikit:config outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" doc:name="Router" doc:id="4e5985a0-740d-41a0-b14c-3a15d245ac6f" name="atm-transaction-api-config" api="resource::8f0e9ef6-83d4-4498-827b-38bb31baac90:atm-transaction-api:1.0.0:raml:zip:atm-transaction-api.raml" />
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="adbe2a6e-13e9-424b-9a5f-7d20a9506ced" >
+		<email:smtps-connection host="${email.host}" port="${email.port}" user="${email.username}" password="${secure::email.password}">
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtps-connection>
+	</email:smtp-config>
+</mule>

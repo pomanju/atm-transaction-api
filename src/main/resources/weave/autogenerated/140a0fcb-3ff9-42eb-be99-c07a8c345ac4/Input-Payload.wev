@@ -1,0 +1,10 @@
+%dw 2.0
+
+type auto_140a0fcb_3ff9_42eb_be99_c07a8c345ac4_Input_Payload = {
+  bank: "ICICI" | "HDFC" | "AXIS", 
+  password: String, 
+  accountNum: String, 
+  user: String, 
+  _?: Any
+}
+

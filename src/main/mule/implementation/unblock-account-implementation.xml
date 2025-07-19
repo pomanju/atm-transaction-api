@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="unblock-account-implementationFlow" doc:id="140a0fcb-3ff9-42eb-be99-c07a8c345ac4" >
+		<ee:transform doc:name="input  variables" doc:id="004ed8db-ea20-4b49-b590-08d60611b429" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="accountNum" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.accountNum]]></ee:set-variable>
+				<ee:set-variable variableName="bank" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.bank]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="query-account-number-flow" doc:id="23655087-581a-435a-89d2-fdb8a6edefc1" name="query-account-number-flow" />
+		<choice doc:name="Choice" doc:id="d139dcd2-8a10-4a36-ba6a-8aeea7fe165d" >
+			<when expression='#[!isEmpty(vars.accountQuery)]'>
+				<choice doc:name="Choice" doc:id="1396ee85-dfee-495e-914d-68feb6686c6c" >
+					<when expression='#[vars.accountQuery.accountStatus == "Active"]'>
+						<ee:transform doc:name="Transform Message" doc:id="fd2cf427-d5bf-4ca7-b1c2-81110572c7d1" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " is active"]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Logger" doc:id="ac60d54c-3ee9-4644-9ca9-ae68addc82ea" message="Before unBloock"/>
+						<db:update doc:name="Unblock account in database" doc:id="fc773a3b-0a0d-4db5-a2f8-52d8a9deb35e" config-ref="Database_Config">
+							<db:sql ><![CDATA[UPDATE `Bank_Transactions1` SET `accountStatus`= 'Active', `wrongPin`= 0 where `custAccNum`= :custAccNum]]></db:sql>
+							<db:input-parameters ><![CDATA[#[{
+	"custAccNum": vars.accountNum
+}]]]></db:input-parameters>
+						</db:update>
+						<logger level="INFO" doc:name="Logger" doc:id="13ec2f2b-9989-40c8-8bd8-aa46b17dc328" message="after unBlock"/>
+						<ee:transform doc:name="Transform Message" doc:id="e34ed4ce-bf3f-48e5-8f03-e2fb11f55cdd" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="mailSubject" ><![CDATA[%dw 2.0
+output application/json
+---
+"Account Unblocked!"]]></ee:set-variable>
+								<ee:set-variable variableName="mailBody" ><![CDATA[%dw 2.0
+output application/json
+---
+"This is to inform you that Your Account has been unblocked"]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="send-email-subflow" doc:id="cd22a256-61f8-4a86-9ed6-00d5959caf97" name="send-email-subflow"/>
+						<ee:transform doc:name="Transform Message" doc:id="82f434cd-9ce7-4e00-bc66-eba538cc1613" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " is Unblocked."]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="cd423a3e-34fb-4b49-9a8f-cf57f1f11c3f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " does not exist. Enter Valid Details"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

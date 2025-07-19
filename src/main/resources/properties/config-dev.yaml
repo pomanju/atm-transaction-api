@@ -1,0 +1,14 @@
+api:
+  id: ""
+  port: "8081"
+  basePath: "/api/*"
+  
+database:
+  host: "b4qi10m6jtplv7e7fgfv-mysql.services.clever-cloud.com"
+  port: "3306"
+  dbName: "b4qi10m6jtplv7e7fgfv" 
+  
+email:
+  host: "smtp.gmail.com"
+  port: "465"
+  username: "pomanju4@gmail.com"

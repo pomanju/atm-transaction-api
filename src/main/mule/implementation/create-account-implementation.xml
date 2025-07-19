@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<flow name="create-account-implementation-flow" doc:id="2003afd2-3588-44c0-887a-f499138ebbd7" >
+		<ee:transform doc:name="Input parameters" doc:id="c6c50a94-93d6-412c-ae3c-e4e927f6fdf4" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="inputPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="bank" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.bank]]></ee:set-variable>
+				<ee:set-variable variableName="accountNum" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.accountNum]]></ee:set-variable>
+				<ee:set-variable variableName="inputParameters" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="query-account-number-flow" doc:id="821728d3-a56c-4c79-a32e-108fc75d2c86" name="query-account-number-flow"/>
+		<choice doc:name="Choice" doc:id="b1edbea8-decc-45d0-a28a-d235bb5f931c" >
+			<when expression="#[isEmpty(vars.accountQuery)]">
+				<ee:transform doc:name="Transform CMM Payload" doc:id="efa52e55-c573-4694-becb-8b71c8f8a5e1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"custName": vars.inputParameters.customerName,
+	"custAccNum": vars.inputPayload.accountNum,
+	"atmPin": vars.inputPayload.atmPin,
+	"bankName": vars.inputParameters.bank,
+	"accountType": vars.inputParameters."type",
+	"ifscCode": vars.inputPayload.ifscCode,
+	"branchName": vars.inputParameters.branchName,
+	"totalBalance": if (vars.inputPayload.depositAmount == null or vars.inputPayload.depositAmount== "") 0 else vars.inputPayload.depositAmount,
+	"transactionTimeStamp": now(),
+	"accountStatus": "Active",
+	"wrongPin": 0,
+	"mailId": vars.inputPayload.mailId,
+	"phoneNumber": vars.inputPayload.contact,
+	
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Log payload before insert" doc:id="83c11a83-03a7-49c5-9c24-eac3e8b34f8e" message="#[payload]"/>
+				<db:insert doc:name="Create account in database" doc:id="d8969dce-fd3f-410c-9239-53e26089b34a" config-ref="Database_Config">
+					<db:sql ><![CDATA[INSERT INTO `Bank_Transactions1`(`custName`, `custAccNum`, `atmPin`, `bankName`, `accountType`, `ifscCode`, `branchName`, `totalBalance`, `transactionTimeStamp`, `accountStatus`, `wrongPin`, `mailId`, `phoneNumber`) VALUES (:custName,:custAccNum,:atmPin,:bankName,:accountType,:ifscCode,:branchName,:totalBalance,:transactionTimeStamp,:accountStatus,:wrongPin,:mailId,:phoneNumber)]]></db:sql>
+					<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+				</db:insert>
+				<logger level="INFO" doc:name="Logger after account created in database" doc:id="9803fa5b-6401-42ad-8bb1-c778a9856b6b" message="record inserted successfully"/>
+				<ee:transform doc:name="Transform Message" doc:id="7950948e-a500-4807-9826-07446cefd146">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="mailSubject" ><![CDATA[%dw 2.0
+output application/json
+---
+"Congratulations ! Account created"]]></ee:set-variable>
+						<ee:set-variable variableName="mailBody" ><![CDATA[%dw 2.0
+output application/json
+---
+"Congratulations ! Your account is created Successfully with 
+Account Number " ++ vars.accountNum ++ " with " ++ vars.bank ++ " Bank"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="send-email-subflow" doc:id="c8d37571-4751-4c0f-9eb7-5c71c516ab66" name="send-email-subflow"/>
+				<ee:transform doc:name="Transform Response" doc:id="11a184fb-dc27-4c5f-91f9-b2d039789e1c">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Account created successfully with account number " ++ vars.accountNum
+} ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="End Logger" doc:id="1e919e71-10bb-411e-a48d-1707c5c7e3f5" message="Account create flow completed"/>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Account already exists response" doc:id="7f57ee50-21b1-4c2f-9e00-53ec9b1b3fa4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Account " ++ vars.accountNum ++ " already exists."]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

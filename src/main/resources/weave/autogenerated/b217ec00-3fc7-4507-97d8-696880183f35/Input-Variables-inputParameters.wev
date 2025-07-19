@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_b217ec00_3fc7_4507_97d8_696880183f35_Input_Variables_inputParameters = {|
+  bank: "ICICI" | "HDFC" | "AXIS", 
+  customerName: String, 
+  branchName: String, 
+  "type": "current" | "savings"
+|}
+
