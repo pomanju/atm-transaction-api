@@ -28,4 +28,5 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 			</email:properties>
 		</email:smtps-connection>
 	</email:smtp-config>
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="00271476-7a11-4b1b-a53c-b930270f8fdc" flowRef="atm-transaction-api-main"/>
 </mule>
