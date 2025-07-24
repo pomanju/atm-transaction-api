@@ -13,8 +13,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<app.runtime>4.9.0</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<app.runtime>4.9.6</app.runtime>
+		<mule.maven.plugin.version>4.4.0</mule.maven.plugin.version>
 	</properties>
 
 	<build>
@@ -36,8 +36,30 @@
 							<artifactId>mysql-connector-java</artifactId>
 						</sharedLibrary>
 					</sharedLibraries>
+					<cloudHubDeployment>
+					      <uri>https://anypoint.mulesoft.com</uri>
+					      <muleVersion>${app.runtime}</muleVersion>
+					      <username>manju-mule-soft-test</username>
+					      <password>Password4#</password>
+					      <applicationName>atm-transaction-api-v1</applicationName>
+					      <environment>SANDBOX</environment>
+					      <!-- <region>${region}</region> -->
+					      <workers>1</workers>
+					      <workerType>micro</workerType>
+					      <uri>https://anypoint.mulesoft.com</uri>
+					</cloudHubDeployment>
 				</configuration>
+				<executions>
+					<execution>
+						<id>deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
+			
 		</plugins>
 	</build>
 
