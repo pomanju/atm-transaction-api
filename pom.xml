@@ -15,6 +15,7 @@
 
 		<app.runtime>4.9.6</app.runtime>
 		<mule.maven.plugin.version>4.4.0</mule.maven.plugin.version>
+		<environment>SANDBOX</environment>
 	</properties>
 
 	<build>
@@ -25,40 +26,45 @@
 				<version>3.2.0</version>
 			</plugin>
 			<plugin>
-				<groupId>org.mule.tools.maven</groupId>
-				<artifactId>mule-maven-plugin</artifactId>
-				<version>${mule.maven.plugin.version}</version>
-				<extensions>true</extensions>
-				<configuration>
-					<sharedLibraries>
-						<sharedLibrary>
-							<groupId>mysql</groupId>
-							<artifactId>mysql-connector-java</artifactId>
-						</sharedLibrary>
-					</sharedLibraries>
-					<cloudHubDeployment>
-					      <uri>https://anypoint.mulesoft.com</uri>
-					      <muleVersion>${app.runtime}</muleVersion>
-					      <username>manju-mule-soft-test</username>
-					      <password>Password4#</password>
-					      <applicationName>atm-transaction-api-v1</applicationName>
-					      <environment>SANDBOX</environment>
-					      <!-- <region>${region}</region> -->
-					      <workers>1</workers>
-					      <workerType>micro</workerType>
-					      <uri>https://anypoint.mulesoft.com</uri>
-					</cloudHubDeployment>
-				</configuration>
-				<executions>
-					<execution>
-						<id>deploy</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>deploy</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+				  <groupId>org.mule.tools.maven</groupId>
+				  <artifactId>mule-maven-plugin</artifactId>
+				  <version>4.4.0</version>
+				  <extensions>true</extensions>
+				  <configuration>
+				    <cloudhub2Deployment>
+				      <uri>https://anypoint.mulesoft.com</uri>
+				      <provider>MC</provider>
+				      <environment>${environment}</environment>
+				      <target>Cloudhub-US-East-2</target>
+				      <muleVersion>4.9.6</muleVersion>
+				      <username>manju-mule-soft-test</username>
+				      <password>Password4#</password>
+					<javaVersion>17</javaVersion>
+				      <applicationName>atm-transaction-api-v1</applicationName>
+				      <replicas>1</replicas>
+				      <vCores>1</vCores>
+				      <deploymentSettings>
+				        <http>
+				          <inbound>
+				            <forwardSslSession>true</forwardSslSession>
+				            <lastMileSecurity>true</lastMileSecurity>
+				          </inbound>
+				        </http>
+					<generateDefaultPulbicUrl>true</generateDefaultPulbicUrl>
+					<updateStrategy>rolling</updateStrategy>
+				      </deploymentSettings>
+					<properties>
+						<mule.env>dev</mule.env>
+						<anypoint.platform.client_id>010b586a632446e8a102aa80f29398a5</anypoint.platform.client_id>
+					</properties>
+					<secureProperties>
+						<mule.key>password12345678</mule.key>
+						<anypoint.platform.client_secret>9Eb249B4770E43aF83BC3648A0259640
+</anypoint.platform.client_secret>
+					</secureProperties>
+				    </cloudhub2Deployment>
+				  </configuration>
+				</plugin>
 			
 		</plugins>
 	</build>
