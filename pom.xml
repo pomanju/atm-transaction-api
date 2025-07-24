@@ -15,7 +15,7 @@
 
 		<app.runtime>4.9.6</app.runtime>
 		<mule.maven.plugin.version>4.4.0</mule.maven.plugin.version>
-		<environment>SANDBOX</environment>
+		<environment>Sandbox</environment>
 	</properties>
 
 	<build>
@@ -39,6 +39,7 @@
 				      <muleVersion>4.9.6</muleVersion>
 				      <username>manju-mule-soft-test</username>
 				      <password>Password4#</password>
+					<businessGroup>wipro-0719</businessGroup>
 					<javaVersion>17</javaVersion>
 				      <applicationName>atm-transaction-api-v1</applicationName>
 				      <replicas>1</replicas>
